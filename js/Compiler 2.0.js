@@ -123,8 +123,8 @@ function onLoad(){
 	*/
 
 	// Seto um valor padrão quando o programa for aberto
-	//document.getElementById("txtText").value = "PROGRAM TESTE;";							//INPP
-	document.getElementById("txtText").value = "VAR N,K : INTEGER; F1,F2,F3: INTEGER;";		//AMEM 5
+	document.getElementById("txtText").value = "PROGRAM TESTE;";							//INPP
+	//document.getElementById("txtText").value = "VAR N,K : INTEGER; F1,F2,F3: INTEGER;";		//AMEM 5
 	//document.getElementById("txtText").value = "BEGIN";
 	//document.getElementById("txtText").value = "READ(N);";
 	//document.getElementById("txtText").value = "F1:=0; F2:=1; K:=1;";
@@ -147,7 +147,7 @@ function translate(){
 
 	var tokens = translateStringToToken(document.getElementById("txtText").value, assembler);
 
-	console.log(showArray(assembler));
+	console.log(showMatriz(assembler, false));
 }
 
 function translateStringToToken(string, assembler){
@@ -195,14 +195,29 @@ function translateStringToToken(string, assembler){
 				if (newToken == ")")
 					bParametro = false;
 
+				newToken = replaceValues(newToken, [",", ";", ":", " "], "");
+
 				identifiedToken = identifyToken(String(newToken), tokens);
-				if (identifiedToken != NOME_PROGRAMA && bInserted == false){
-					if (identifiedToken != ESCREVE_VALOR){
-						if ((tokens.length > 0 ? tokens[tokens.length-1][1] : null) == ALOCA_ESPACO && ç)
-							numVariaveis++;
-						else{
-							tokens.push([newToken, identifiedToken]);	//STOP
-							assembler.push(translateToken([newToken, identifiedToken], numVariaveis));
+
+				if (identifiedToken != null){
+
+					if (identifiedToken != NOME_PROGRAMA && bInserted == false){
+						if (identifiedToken != ESCREVE_VALOR){
+							if ( ((tokens.length > 0 ? tokens[tokens.length-1][1] : null) == ALOCA_ESPACO) && (identifiedToken != ESCREVE_VALOR) ){
+								numVariaveis++;
+								if (assembler[assembler.length-1].indexOf("AMEM") >= 0){
+									//alert("Estou fazendo push de: " + newToken + "\nIdentificado como: " + identifiedToken);
+
+									newToken = "VAR";	identifiedToken = identifyToken(String(newToken), tokens);
+									tokens.pop();		tokens.push([newToken, identifiedToken]);	//STOP
+									assembler.pop();	assembler.push(translateToken([newToken, identifiedToken], numVariaveis));								
+								}
+							}
+							else{
+								//alert("O token é: " + newToken + "\nIdentificado como: " + identifiedToken);
+								tokens.push([newToken, identifiedToken]);	//STOP
+								assembler.push(translateToken([newToken, identifiedToken], numVariaveis));
+							}
 						}
 					}
 				}
@@ -256,8 +271,12 @@ function identifyToken(token, tokens){
 			return NOME_PROGRAMA;
 	}
 
-	if (isNaN(token))
-		return CARREGA_VALOR;
+	if (isNaN(token)){
+		if( (token.indexOf(":") >= 0) || (token.indexOf(",") >= 0) || (token.indexOf(" ") >= 0) || (token.indexOf(";") >= 0) )
+			return null;
+		else
+			return CARREGA_VALOR;
+	}
 	else
 		return CONSTANTE;
 }
