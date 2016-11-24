@@ -123,8 +123,8 @@ function onLoad(){
 	*/
 
 	// Seto um valor padrão quando o programa for aberto
-	document.getElementById("txtText").value = "PROGRAM TESTE;";							//INPP
-	//document.getElementById("txtText").value = "VAR N,K : INTEGER; F1,F2,F3: INTEGER;";		//AMEM 5
+	//document.getElementById("txtText").value = "PROGRAM TESTE;";							//INPP
+	document.getElementById("txtText").value = "VAR N,K : INTEGER; F1,F2,F3: INTEGER;";		//AMEM 5
 	//document.getElementById("txtText").value = "BEGIN";
 	//document.getElementById("txtText").value = "READ(N);";
 	//document.getElementById("txtText").value = "F1:=0; F2:=1; K:=1;";
@@ -203,14 +203,15 @@ function translateStringToToken(string, assembler){
 
 					if (identifiedToken != NOME_PROGRAMA && bInserted == false){
 						if (identifiedToken != ESCREVE_VALOR){
-							if ( ((tokens.length > 0 ? tokens[tokens.length-1][1] : null) == ALOCA_ESPACO) && (identifiedToken != ESCREVE_VALOR) ){
+							if ( ((tokens.length > 0 ? tokens[tokens.length-1][1] : null) == ALOCA_ESPACO) ){
 								numVariaveis++;
 								if (assembler[assembler.length-1].indexOf("AMEM") >= 0){
-									//alert("Estou fazendo push de: " + newToken + "\nIdentificado como: " + identifiedToken);
-
-									newToken = "VAR";	identifiedToken = identifyToken(String(newToken), tokens);
-									tokens.pop();		tokens.push([newToken, identifiedToken]);	//STOP
-									assembler.pop();	assembler.push(translateToken([newToken, identifiedToken], numVariaveis));								
+									if (identifiedToken == CARREGA_VALOR){
+										newToken = "VAR";	identifiedToken = identifyToken(String(newToken), tokens);
+										tokens.pop();		tokens.push([newToken, identifiedToken]);	//STOP
+										assembler.pop();	assembler.push(translateToken([newToken, identifiedToken], numVariaveis));
+									}else
+										numVariaveis--;
 								}
 							}
 							else{
