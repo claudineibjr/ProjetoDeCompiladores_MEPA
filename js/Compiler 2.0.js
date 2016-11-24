@@ -198,11 +198,13 @@ function translateStringToToken(string, assembler){
 				if (newToken == ")")
 					bParametro = false;
 
-				newToken = replaceValues(newToken, [",", ";", ":", " "], "");
+				newToken = replaceValues(newToken, [",", ";", ":", "\n", "\t", " "], "");
 
 				identifiedToken = identifyToken(String(newToken), tokens);
 
 				if (identifiedToken != null){
+
+					console.log("O token é: " + newToken + "\nTipado como: " + identifiedToken );
 
 					if (identifiedToken != NOME_PROGRAMA && bInserted == false){
 						if (identifiedToken != ESCREVE_VALOR){
