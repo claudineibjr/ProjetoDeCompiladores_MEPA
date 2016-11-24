@@ -123,31 +123,34 @@ function onLoad(){
 	*/
 
 	// Seto um valor padrão quando o programa for aberto
-	//document.getElementById("txtText").value = "PROGRAM TESTE;";							//INPP
-	document.getElementById("txtText").value = "VAR N,K : INTEGER; F1,F2,F3: INTEGER;";		//AMEM 5
-	//document.getElementById("txtText").value = "BEGIN";
-	//document.getElementById("txtText").value = "READ(N);";
-	//document.getElementById("txtText").value = "F1:=0; F2:=1; K:=1;";
-	//document.getElementById("txtText").value = "WHILE K<= N DO";
-	//document.getElementById("txtText").value = "BEGIN";
-	//document.getElementById("txtText").value = "F3:=F1+F2;";
-	//document.getElementById("txtText").value = "F1:=F2;";
-	//document.getElementById("txtText").value = "F2:=F3;";
-	//document.getElementById("txtText").value = "K:=K+1;";
-	//document.getElementById("txtText").value = "END;";
-	//document.getElementById("txtText").value = "WRITE (N, F1);";
-	//document.getElementById("txtText").value = "END.";
+	var debugWords = new Array();
+	debugWords.push("PROGRAM TESTE;");							//INPP
+	debugWords.push("VAR N,K : INTEGER; F1,F2,F3: INTEGER;");		//AMEM 5
+	//debugWords.push("BEGIN");
+	//debugWords.push("READ(N);");
+	//debugWords.push("F1:=0; F2:=1; K:=1;");
+	//debugWords.push("WHILE K<= N DO");
+	//debugWords.push("BEGIN");
+	//debugWords.push("F3:=F1+F2;");
+	//debugWords.push("F1:=F2;");
+	//debugWords.push("F2:=F3;");
+	//debugWords.push("K:=K+1;");
+	//debugWords.push("END;");
+	//debugWords.push("WRITE (N, F1);");
+	//debugWords.push("END.");
+	
+	document.getElementById("pascalCode").value = showMatriz(debugWords, false);
 
 }
 function translate(){
-	document.getElementById("txtText").value = document.getElementById("txtText").value + " ";
+	document.getElementById("pascalCode").value = document.getElementById("pascalCode").value + " ";
 
 	var assembler;
 	assembler = new Array();
 
-	var tokens = translateStringToToken(document.getElementById("txtText").value, assembler);
+	var tokens = translateStringToToken(document.getElementById("pascalCode").value, assembler);
 
-	console.log(showMatriz(assembler, false));
+	document.getElementById("assemblerCode").value = showMatriz(assembler, false);
 }
 
 function translateStringToToken(string, assembler){
