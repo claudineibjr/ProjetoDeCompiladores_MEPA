@@ -87,12 +87,11 @@ const IF = 19;					/*	if (expr) then c1 else c2
 const DESVIA_FALSO = 20;		//	DSVF p (desvia para p se topo for falso; (p é endereço))
 const DESVIA = 21;				//	DSVS q (desvia sempre para q (q é endereço)
 const WHILE = 22;				/*	WHILE expr DO c
-									L1	NADA
-										expr
+									L1	expr
 										DSVF L2
 										c
 										DSVS L1
-									L2	NADA
+									L2	
 								*/
 const INICIA_PROGRAMA = 23;		//	INPP (iniciar programa principal. Primeira instrução do programa objeto gerado.)
 const ALOCA_ESPACO = 24;		//	AMEM n (aloca espaço na memória (pilha M) para n variáveis)
@@ -100,10 +99,11 @@ const DESALOCA_ESPACO = 25;		//	DMEM n (desaloca o espaço das n variáveis aloc
 const PARA_EXECUCAO = 26;		//	PARA (para a execução do MEPA)
 const TIPO_VARIAVEL = 27;		//	Tipagem de variáveis
 const INICIO_BLOCO = 28;		//	Início de bloco
-const INICIO_PARAMETRO = 29;	//	Parâmetro
-const FIM_PARAMETRO = 30;		//	Parâmetro
-const SEPARADOR = 31;			//	Vírgula
-const PARAMETRO = 32;
+const FIM_BLOCO = 29;			//	Fim de um bloco de código
+const INICIO_PARAMETRO = 30;	//	Parâmetro
+const FIM_PARAMETRO = 31;		//	Parâmetro
+const SEPARADOR = 32;			//	Vírgula
+const PARAMETRO = 33;
 const NOME_PROGRAMA = 100;
 
 var variaveis;
@@ -132,19 +132,23 @@ function onLoad(){
 														ARMZ 3
 														CRCT 1
 														ARMZ 1	*/
-	//debugWords.push("WHILE K<= N DO");
-	//debugWords.push("BEGIN");
+	debugWords.push("WHILE K <= N DO ");	//<TO DO>
+	debugWords.push("BEGIN");	//<TO DO>
 	debugWords.push("F3 := F1 + F2;");
 	debugWords.push("F1 := F2;");
 	debugWords.push("F2 := F3;");
 	debugWords.push("K := K + 1;");
-	//debugWords.push("END;");
+	debugWords.push("END;");	//<TO DO>
 	debugWords.push("WRITE ( N, F1 );");	/*	CRVL 0
 												IMPR 
 												CRVL 2
 												IMPR
 											*/
-	//debugWords.push("END.");
+	debugWords.push("END .");
+
+	debugWords = new Array();	// New Debug
+	debugWords.push("WHILE  S > 0 DO ");
+	debugWords.push("S := S – 2");
 	
 	document.getElementById("pascalCode").value = showMatriz(debugWords, false);
 	// debug pronto: console.log("Token em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero + " assembler.length );
@@ -155,11 +159,11 @@ function translate(){
 	document.getElementById("pascalCode").value = document.getElementById("pascalCode").value + " ";
 
 	var assembler;
-	assembler = new Array();
+	assembler = newMatriz(1, 2);
 
 	var tokens = translateStringToToken(document.getElementById("pascalCode").value, assembler);
 
-	document.getElementById("assemblerCode").value = showMatriz(assembler, false);
+	document.getElementById("assemblerCode").value = showMatriz(assembler, true);
 }
 
 function translateStringToToken(string, assembler){
@@ -167,6 +171,7 @@ function translateStringToToken(string, assembler){
 	var newToken, newTokenParameter = "", identifiedToken = "";
 
 	var iAux = 0, bParametro = false, auxParametros = new Array(), bInserted = false, numVariaveis = 0;
+	var whileLine = null, endWhileLine = null, jumpConditionalLine = null;
 
 	// Percorre caracter a caracter do texto em Pascal
 	for(var i = 0; i < string.length; i++){
@@ -205,14 +210,14 @@ function translateStringToToken(string, assembler){
 							tokens.push([auxParametros[j], identifiedToken]);
 							console.log("1\tToken em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero: " + assembler.length );
 							switch(newTokenParameter.toUpperCase()){
-								case "WRITE": {assembler.push(translateToken([auxParametros[j], identifiedToken], null, 1));	break;}
-								case "READ": {assembler.push(translateToken([auxParametros[j], identifiedToken], null, 2));	break;}
+								case "WRITE": {assembler.push([(assembler.length + 1), translateToken([auxParametros[j], identifiedToken], null, 1)]);	break;}
+								case "READ": {assembler.push([(assembler.length + 1), translateToken([auxParametros[j], identifiedToken], null, 2)]);	break;}
 							}
 						}
 						// Após inserir os parâmetros, insere a função responsável pelos parâmetros
 						identifiedToken = identifyToken(newTokenParameter, tokens);
 						console.log("2\tToken em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero: " + assembler.length );
-						assembler.push(translateToken([newTokenParameter, identifiedToken], null));
+						assembler.push([(assembler.length + 1), translateToken([newTokenParameter, identifiedToken], null)]);
 
 						auxParametros = new Array();
 					}
@@ -223,7 +228,7 @@ function translateStringToToken(string, assembler){
 					bParametro = false;
 
 				// Retira caracteres indesejados do token
-				newToken = replaceValues(newToken, [",", ";", "\n", "\t", " ", "(", ")"], "");
+				newToken = replaceValues(newToken, [",", ";", "\n", "\t", " ", "(", ")", "."], "");
 
 				// Guarda a informação de que tipo de token que é
 				identifiedToken = identifyToken(String(newToken), tokens);
@@ -233,23 +238,30 @@ function translateStringToToken(string, assembler){
 
 					// Se a identificação do token for diferente do nome do programa continua
 					if (identifiedToken != NOME_PROGRAMA && bInserted == false){
+						
 						// Se a identificação do token for diferente de WRITE continua
 						if (identifiedToken != ESCREVE_VALOR){
+							
 							// Se há mais de um token e este token for igual a alocação de espaço continua
 							if ( ((tokens.length > 0 ? tokens[tokens.length-1][1] : null) == ALOCA_ESPACO) && (identifiedToken != INICIO_BLOCO) ){
 								variaveis.push(newToken);
 								numVariaveis++;
+								
 								// Se o último token inserido no assembler for amem continua
 								if (assembler[assembler.length-1].indexOf("AMEM") >= 0){
+									
 									// Se o último token do assembler for amem e o token atual for uma variável,
 									if (identifiedToken == CARREGA_VALOR){
+										
 										// Caso seja mais uma variável, retira o último token e o reinsere com o númeo correto de variáveis
 										newToken = "VAR";	identifiedToken = identifyToken(String(newToken), tokens);
 										tokens.pop();		tokens.push([newToken, identifiedToken]);
 										console.log("3\tToken em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero: " + assembler.length );
-										assembler.pop();	assembler.push(translateToken([newToken, identifiedToken], numVariaveis));
+										assembler.pop();	assembler.push([(assembler.length + 1), translateToken([newToken, identifiedToken], numVariaveis)]);
 									}else{
-										variaveis.pop();	numVariaveis--;	// Na realidade não era uma variável, então tira o valor do array de variáveis e decrementa a variável contadora
+
+										// Na realidade não era uma variável, então tira o valor do array de variáveis e decrementa a variável contadora
+										variaveis.pop();	numVariaveis--;	
 									}
 								}
 							}
@@ -258,10 +270,29 @@ function translateStringToToken(string, assembler){
 									// Insere o token e o traduz para assembler
 									console.log("4\tToken em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero: " + assembler.length );
 									
+									// Caso o token atual seja := e esteja identificado como armazena, eu retiro os anteriores pois seis que estão lá indevidamente
 									if (newToken == ":=" && identifiedToken == ARMAZENA)	{	tokens.pop(); assembler.pop();	}
+
+									// Caso o token atual seja um while, guarda o número da linha atual
+									whileLine = (identifiedToken == WHILE ? (assembler.length + 1) : whileLine );
+
+									// Caso seja o DO ou o THEN guarda o número da linha para posteriormente ajustar o JUMP
+									jumpConditionalLine = (identifiedToken == DESVIA_FALSO ? (assembler.length + 1) : jumpConditionalLine);
+
 									tokens.push([newToken, identifiedToken]);	//STOP
 									var assemblerToken = translateToken([newToken, identifiedToken], numVariaveis);
-									(assemblerToken != "" ? assembler.push(assemblerToken) : null);
+									(assemblerToken != "" ? assembler.push([(assembler.length + 1), assemblerToken]) : null);
+
+									// Caso for o fim de um bloco de WHILE ou IF, eu insiro uma nova linha quando necessário e também arrumo a linha do desvia se falso que ficou para trás
+									if (whileLine != null && (i+1 == string.length)){
+										assembler.push([(assembler.length + 1), "DSVS L" + whileLine]);
+									}
+
+									// Caso for o fim de um bloco de WHILE ou IF, eu insiro uma nova linha quando necessário e também arrumo a linha do desvia se falso que ficou para trás
+									if (jumpConditionalLine != null && (i+1 == string.length)){
+										assembler[jumpConditionalLine-1][1] = assembler[jumpConditionalLine-1][1].replace("DO", "L" + (assembler.length + 1));
+										assembler.push([(assembler.length+1), ""]);
+									}
 								}
 							}
 						}
@@ -271,7 +302,6 @@ function translateStringToToken(string, assembler){
 			iAux = i;
 		}
 	}
-
 	return tokens;
 }
 
@@ -296,8 +326,9 @@ function identifyToken(token, tokens){
 		case "write": 	return ESCREVE_VALOR;	//<TO DO>
 		case "if": 	return IF;
 		case " ": 	return DESVIA_FALSO;	//<TO DO>
+		case "do" : return DESVIA_FALSO;
 		case " ": 	return DESVIA;	//<TO DO>
-		case " ": 	return WHILE;	//<TO DO>
+		case "while": 	return WHILE;	//<TO DO>
 		case "program": 	return INICIA_PROGRAMA;	//<TO DO>
 		case "var": return ALOCA_ESPACO;
 		case " ": 	return DESALOCA_ESPACO;	//<TO DO>
@@ -307,6 +338,8 @@ function identifyToken(token, tokens){
 		case "(": return INICIO_PARAMETRO;
 		case ")": return FIM_PARAMETRO;
 		case ",": return SEPARADOR;
+		case "end" : return FIM_PARAMETRO;
+
 	}
 
 	if(token.substring(token.indexOf(":")) == ":=")
@@ -379,7 +412,7 @@ function translateToken(token, numVariaveis, tpFuncao){
 		//<TO DO> Falta fazer o if // case IF: {	texto = "";	break;	}
 		case DESVIA_FALSO: {	texto = "DSVF " + posicaoVariavel(token[0]);	break;	}	//<TO DO>
 		case DESVIA: {	texto = "DSVS " + posicaoVariavel(token[0]);	break;	}	//<TO DO>
-		//<TO DO> Falta fazer o while // case WHILE: {	texto = "";	break;	}
+		case WHILE: {	texto = "";	break;	}
 		case INICIA_PROGRAMA: {	texto = "INPP";	break;	}
 		case ALOCA_ESPACO: {	texto = "AMEM " + numVariaveis; break;	}
 		case DESALOCA_ESPACO: {	texto = "DMEM " + posicaoVariavel(token[0]);	break;	}	//<TO DO>
