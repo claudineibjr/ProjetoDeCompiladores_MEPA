@@ -13,11 +13,22 @@
 
 	</head>
 	<body onload="onLoad()">
-	
 		<div class="CustomDiv">
 
 			<div class="panel panel-primary" id="parametros_Funcao">
-				<div class="panel-heading">Projeto de compiladores</div>						
+				<div class="panel-heading">Exemplos</div>
+				<div class="panel-body">
+					<button type="button" class="btn btn-default" onclick="setExample(1)">Código completo #1</button>
+					<button type="button" class="btn btn-default" onclick="setExample(2)">Código completo #2</button>		
+					<button type="button" class="btn btn-default" onclick="setExample(3)">Leitura de valores</button>
+					<button type="button" class="btn btn-default" onclick="setExample(4)">Escrita na tela</button>
+					<button type="button" class="btn btn-default" onclick="setExample(5)">Atribuição de valores</button>
+					<button type="button" class="btn btn-default" onclick="setExample(6)">IF</button>
+					<button type="button" class="btn btn-default" onclick="setExample(7)">WHILE</button>
+				</div>
+			</div>
+			<div class="panel panel-primary" id="parametros_Funcao">
+				<div class="panel-heading">Projeto de compiladores</div>
 				<div class="panel-body">
 					<div class="col-sm-6">
 						<span class="label label-default">Código em PASCAL</span><br><br>
@@ -29,7 +40,7 @@
 					</div>				
 				</div>
 			</div>
-			<button type="button" class="btn btn-default" id="btnTranslate"	onclick="translate()">Traduzir cadeia em assembler</button>														
+			<button type="button" class="btn btn-default" id="btnTranslate"	onclick="translate()">Traduzir cadeia em assembler</button>
 
 		</div>
 		

@@ -63,41 +63,6 @@ function onLoad(){
 		 - Cada token deve ser separado por um espaço
 	*/
 
-	// Seto um valor padrão quando o programa for aberto
-	var readyExample1 = new Array();
-	readyExample1.push("PROGRAM TESTE; ");
-	readyExample1.push("VAR N, K : INTEGER; F1, F2, F3: INTEGER; ");
-	readyExample1.push("BEGIN ");
-	readyExample1.push("READ ( N );");
-	readyExample1.push("F1 := 0; F2 := 1; K := 1;");
-	readyExample1.push("WHILE K <= N DO ");
-	readyExample1.push("BEGIN");
-	readyExample1.push("F3 := F1 + F2;");
-	readyExample1.push("F1 := F2;");
-	readyExample1.push("F2 := F3;");
-	readyExample1.push("K := K + 1;");
-	readyExample1.push("END;");
-	readyExample1.push("WRITE ( N, F1 );");
-	readyExample1.push("END .");
-
-	var readyExample2 = new Array();
-	readyExample2.push("PROGRAM XYZ; ");
-	readyExample2.push("VAR A, S, NUM: INTEGER; ");
-	readyExample2.push("BEGIN ")
-	readyExample2.push("A := 1;")
-	readyExample2.push("S := 0;")
-	readyExample2.push("WHILE A <= 100 DO ")
-	readyExample2.push("BEGIN ")
-	readyExample2.push("READ ( NUM ); ")
-	readyExample2.push("IF NUM > 0 THEN ")
-	readyExample2.push("S := S + NUM;")
-	readyExample2.push("A := A + 1;")
-	readyExample2.push("END; ")
-	readyExample2.push("WRITE ( S ); ")
-	readyExample2.push("END.")
-	
-	document.getElementById("pascalCode").value = showMatriz(readyExample2, false);
-
 }
 function translate(){
 	document.getElementById("pascalCode").value = document.getElementById("pascalCode").value + " ";
@@ -383,4 +348,75 @@ function posicaoVariavel(CARREGA_VALOR){
 	//}
 	//return "[VARIAVEL]";
 	return CARREGA_VALOR;
+}
+
+function setExample(numberExample){
+	var readyExample1 = new Array();
+	readyExample1.push("PROGRAM TESTE; ");
+	readyExample1.push("VAR N, K : INTEGER; F1, F2, F3: INTEGER; ");
+	readyExample1.push("BEGIN ");
+	readyExample1.push("READ ( N );");
+	readyExample1.push("F1 := 0; F2 := 1; K := 1;");
+	readyExample1.push("WHILE K <= N DO ");
+	readyExample1.push("BEGIN");
+	readyExample1.push("F3 := F1 + F2;");
+	readyExample1.push("F1 := F2;");
+	readyExample1.push("F2 := F3;");
+	readyExample1.push("K := K + 1;");
+	readyExample1.push("END;");
+	readyExample1.push("WRITE ( N, F1 );");
+	readyExample1.push("END .");
+
+	var readyExample2 = new Array();
+	readyExample2.push("PROGRAM XYZ; ");
+	readyExample2.push("VAR A, S, NUM: INTEGER; ");
+	readyExample2.push("BEGIN ")
+	readyExample2.push("A := 1;")
+	readyExample2.push("S := 0;")
+	readyExample2.push("WHILE A <= 100 DO ")
+	readyExample2.push("BEGIN ")
+	readyExample2.push("READ ( NUM ); ")
+	readyExample2.push("IF NUM > 0 THEN ")
+	readyExample2.push("S := S + NUM;")
+	readyExample2.push("A := A + 1;")
+	readyExample2.push("END; ")
+	readyExample2.push("WRITE ( S ); ")
+	readyExample2.push("END.")
+
+	var readyExample3 = new Array();
+	readyExample3.push("READ ( NUM ); ");
+
+	var readyExample4 = new Array();
+	readyExample4.push("WRITE ( N, F1 ); ");
+
+	var readyExample5 = new Array();
+	readyExample5.push("S := S + NUM; ");
+
+	var readyExample6 = new Array();
+	readyExample6.push("IF NUM > 0 THEN ");
+	readyExample6.push("S := S + NUM; ");
+	readyExample6.push("A := A + 1; ");
+
+	var readyExample7 = new Array();
+	readyExample7.push("WHILE K <= N DO ");
+	readyExample7.push("BEGIN ");
+	readyExample7.push("F3 := F1 + F2; ");
+	readyExample7.push("F1 := F2; ");
+	readyExample7.push("F2 := F3; ");
+	readyExample7.push("K := K + 1; ");
+	readyExample7.push("END; ");
+	readyExample7.push("WRITE ( N, F1 ); ");
+	
+	document.getElementById("pascalCode").value = showMatriz(readyExample2, false);	
+
+	switch(numberExample){
+		case 1: { document.getElementById("pascalCode").value = showMatriz(readyExample1, false);	break; }
+		case 2: { document.getElementById("pascalCode").value = showMatriz(readyExample2, false);	break; }
+		case 3: { document.getElementById("pascalCode").value = showMatriz(readyExample3, false);	break; }
+		case 4: { document.getElementById("pascalCode").value = showMatriz(readyExample4, false);	break; }
+		case 5: { document.getElementById("pascalCode").value = showMatriz(readyExample5, false);	break; }
+		case 6: { document.getElementById("pascalCode").value = showMatriz(readyExample6, false);	break; }
+		case 7: { document.getElementById("pascalCode").value = showMatriz(readyExample7, false);	break; }
+	}
+
 }
