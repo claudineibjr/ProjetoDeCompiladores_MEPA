@@ -146,9 +146,6 @@ function onLoad(){
 											*/
 	debugWords.push("END .");
 
-	debugWords = new Array();	// New Debug
-	debugWords.push("WHILE  S > 0 DO ");
-	debugWords.push("S := S – 2");
 	
 	document.getElementById("pascalCode").value = showMatriz(debugWords, false);
 	// debug pronto: console.log("Token em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero + " assembler.length );
@@ -284,14 +281,16 @@ function translateStringToToken(string, assembler){
 									(assemblerToken != "" ? assembler.push([(assembler.length + 1), assemblerToken]) : null);
 
 									// Caso for o fim de um bloco de WHILE ou IF, eu insiro uma nova linha quando necessário e também arrumo a linha do desvia se falso que ficou para trás
-									if (whileLine != null && (i+1 == string.length)){
+									if (whileLine != null && ((i+1 == string.length) || identifiedToken == FIM_BLOCO )){
 										assembler.push([(assembler.length + 1), "DSVS L" + whileLine]);
+										whileLine = null;
 									}
 
 									// Caso for o fim de um bloco de WHILE ou IF, eu insiro uma nova linha quando necessário e também arrumo a linha do desvia se falso que ficou para trás
-									if (jumpConditionalLine != null && (i+1 == string.length)){
+									if (jumpConditionalLine != null && ((i+1 == string.length) || identifiedToken == FIM_BLOCO )){
 										assembler[jumpConditionalLine-1][1] = assembler[jumpConditionalLine-1][1].replace("DO", "L" + (assembler.length + 1));
 										assembler.push([(assembler.length+1), ""]);
+										jumpConditionalLine = null;
 									}
 								}
 							}
@@ -338,7 +337,7 @@ function identifyToken(token, tokens){
 		case "(": return INICIO_PARAMETRO;
 		case ")": return FIM_PARAMETRO;
 		case ",": return SEPARADOR;
-		case "end" : return FIM_PARAMETRO;
+		case "end" : return FIM_BLOCO;
 
 	}
 
