@@ -135,9 +135,9 @@ function onLoad(){
 	//debugWords.push("WHILE K<= N DO");
 	//debugWords.push("BEGIN");
 	debugWords.push("F3 := F1 + F2;");
-	//debugWords.push("F1:=F2;");
-	//debugWords.push("F2:=F3;");
-	//debugWords.push("K:=K+1;");
+	debugWords.push("F1 := F2;");
+	debugWords.push("F2 := F3;");
+	debugWords.push("K := K + 1;");
 	//debugWords.push("END;");
 	debugWords.push("WRITE ( N, F1 );");	/*	CRVL 0
 												IMPR 
@@ -394,6 +394,6 @@ function posicaoVariavel(CARREGA_VALOR){
 	//	if (posicoes[i][0] == CARREGA_VALOR)
 	//		return posicoes[i][1];
 	//}
-	return "[VARIAVEL]";
-	//return CARREGA_VALOR;
+	//return "[VARIAVEL]";
+	return CARREGA_VALOR;
 }
