@@ -64,7 +64,7 @@ function onLoad(){
 	*/
 
 }
-function translate(){
+function translateTeste(){
 	document.getElementById("pascalCode").value = document.getElementById("pascalCode").value + " ";
 
 	var assembler;
