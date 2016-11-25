@@ -1,60 +1,3 @@
-/*
-PROGRAM TESTE;
-	VAR 	N,K : INTEGER;
-			F1,F2,F3: INTEGER;
-BEGIN
-	READ(N);
-	F1:=0; F2:=1; K:=1;
-	WHILE K<= N DO
-	BEGIN
-		F3:=F1+F2;
-		F1:=F2;
-		F2:=F3;
-		K:=K+1;
-	END;
-	WRITE (N, F1);
-END.
-
-->
-
-	INPP
-	AMEM 5
-	LEIT
-	ARMZ 0
-	CRCT 0
-	ARMZ 2
-	CRCT 1
-	ARMZ 3
-	CRCT 1
-	ARMZ 1
-L1	NADA
-	CRVL 1
-	CRVL 0
-	CMEG
-	DSVF L2
-	CRVL 2
-	CRVL 3
-	SOMA
-	ARMZ 4
-	CRVL 3
-	ARMZ 2
-	CRVL 4
-	ARMZ 3
-	CRVL 1
-	CRCT 1
-	SOMA
-	ARMZ 1
-	DSVS L1
-L2	NADA
-	CRVL 0
-	IMPR 
-	CRVL 2
-	IMPR
-	DMEM 5
-	PARA
-
-*/
-
 const CONSTANTE = 0; 			//	CRCT K (Carregar constante K)
 const CARREGA_VALOR = 1;		//	CRVL N (Carregar Valor)
 const SOMA = 2;					//	SOMA (Somar)
@@ -121,40 +64,39 @@ function onLoad(){
 	*/
 
 	// Seto um valor padrão quando o programa for aberto
-	var debugWords = new Array();
-	debugWords.push("PROGRAM TESTE; ");	//	INPP
-	debugWords.push("VAR N, K : INTEGER; F1, F2, F3: INTEGER; ");	//	AMEM 5
-	debugWords.push("BEGIN "); //
-	debugWords.push("READ ( N );");	/*	LEIT
-										ARMZ 0*/
-	debugWords.push("F1 := 0; F2 := 1; K := 1;");	/*	CRCT 0
-														ARMZ 2
-														CRCT 1
-														ARMZ 3
-														CRCT 1
-														ARMZ 1	*/
-	debugWords.push("WHILE K <= N DO ");	//<TO DO>
-	debugWords.push("BEGIN");	//<TO DO>
-	debugWords.push("F3 := F1 + F2;");
-	debugWords.push("F1 := F2;");
-	debugWords.push("F2 := F3;");
-	debugWords.push("K := K + 1;");
-	debugWords.push("END;");	//<TO DO>
-	debugWords.push("WRITE ( N, F1 );");	/*	CRVL 0
-												IMPR 
-												CRVL 2
-												IMPR
-											*/
-	debugWords.push("END .");
+	var readyExample1 = new Array();
+	readyExample1.push("PROGRAM TESTE; ");
+	readyExample1.push("VAR N, K : INTEGER; F1, F2, F3: INTEGER; ");
+	readyExample1.push("BEGIN ");
+	readyExample1.push("READ ( N );");
+	readyExample1.push("F1 := 0; F2 := 1; K := 1;");
+	readyExample1.push("WHILE K <= N DO ");
+	readyExample1.push("BEGIN");
+	readyExample1.push("F3 := F1 + F2;");
+	readyExample1.push("F1 := F2;");
+	readyExample1.push("F2 := F3;");
+	readyExample1.push("K := K + 1;");
+	readyExample1.push("END;");
+	readyExample1.push("WRITE ( N, F1 );");
+	readyExample1.push("END .");
 
-	debugWords = new Array();
-	debugWords.push("if A > B ");
-	debugWords.push("then A := 2 ");
-	debugWords.push("else B := 2");
+	var readyExample2 = new Array();
+	readyExample2.push("PROGRAM XYZ; ");
+	readyExample2.push("VAR A, S, NUM: INTEGER; ");
+	readyExample2.push("BEGIN ")
+	readyExample2.push("A := 1;")
+	readyExample2.push("S := 0;")
+	readyExample2.push("WHILE A <= 100 DO ")
+	readyExample2.push("BEGIN ")
+	readyExample2.push("READ ( NUM ); ")
+	readyExample2.push("IF NUM > 0 THEN ")
+	readyExample2.push("S := S + NUM;")
+	readyExample2.push("A := A + 1;")
+	readyExample2.push("END; ")
+	readyExample2.push("WRITE ( S ); ")
+	readyExample2.push("END.")
 	
-	document.getElementById("pascalCode").value = showMatriz(debugWords, false);
-	// debug pronto: console.log("Token em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero + " assembler.length );
-
+	document.getElementById("pascalCode").value = showMatriz(readyExample2, false);
 
 }
 function translate(){
@@ -311,6 +253,8 @@ function translateStringToToken(string, assembler){
 			iAux = i;
 		}
 	}
+	assembler.push([(assembler.length + 1), "DMEM " + numVariaveis]);
+	assembler.push([(assembler.length + 1), "PARA"]);
 	return tokens;
 }
 
@@ -329,20 +273,19 @@ function identifyToken(token, tokens){
 		case "!=": 	return COMPARA_DESIGUAL;
 		case "<=": 	return COMPARA_MENOR_IGUAL;
 		case ">=": 	return COMPARA_MAIOR_IGUAL;
-		case " ": 	return INVERTE_SINAL;	//<TO DO>
+		case " ": 	return INVERTE_SINAL;
 		case "!": 	return NEGACAO;
-		case "read": 	return LE_VALOR;	//<TO DO>
-		case "write": 	return ESCREVE_VALOR;	//<TO DO>
+		case "read": 	return LE_VALOR;
+		case "write": 	return ESCREVE_VALOR;
 		case "if": 	return IF;
-		//case " ": 	return DESVIA_FALSO;	//<TO DO>
 		case "do" : return DESVIA_FALSO;
 		case "then" : return DESVIA_FALSO;
-		case " ": 	return DESVIA;	//<TO DO>
-		case "while": 	return WHILE;	//<TO DO>
-		case "program": 	return INICIA_PROGRAMA;	//<TO DO>
+		case " ": 	return DESVIA;
+		case "while": 	return WHILE;
+		case "program": 	return INICIA_PROGRAMA;
 		case "var": return ALOCA_ESPACO;
-		case " ": 	return DESALOCA_ESPACO;	//<TO DO>
-		case " ": 	return PARA_EXECUCAO;	//<TO DO>
+		case " ": 	return DESALOCA_ESPACO;
+		case " ": 	return PARA_EXECUCAO;
 		case "integer": return TIPO_VARIAVEL;
 		case "begin": return INICIO_BLOCO;
 		case "(": return INICIO_PARAMETRO;
