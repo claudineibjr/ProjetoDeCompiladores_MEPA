@@ -127,11 +127,11 @@ function onLoad(){
 	debugWords.push("READ ( N );");	/*	LEIT
 										ARMZ 0*/
 	debugWords.push("F1 := 0; F2 := 1; K := 1;");	/*	CRCT 0
-												ARMZ 2
-												CRCT 1
-												ARMZ 3
-												CRCT 1
-												ARMZ 1	*/
+														ARMZ 2
+														CRCT 1
+														ARMZ 3
+														CRCT 1
+														ARMZ 1	*/
 	//debugWords.push("WHILE K<= N DO");
 	//debugWords.push("BEGIN");
 	//debugWords.push("F3:=F1+F2;");
@@ -139,7 +139,11 @@ function onLoad(){
 	//debugWords.push("F2:=F3;");
 	//debugWords.push("K:=K+1;");
 	//debugWords.push("END;");
-	//debugWords.push("WRITE (N, F1);");
+	debugWords.push("WRITE ( N, F1 );");	/*	CRVL 0
+												IMPR 
+												CRVL 2
+												IMPR
+											*/
 	//debugWords.push("END.");
 	
 	document.getElementById("pascalCode").value = showMatriz(debugWords, false);
@@ -201,8 +205,8 @@ function translateStringToToken(string, assembler){
 							tokens.push([auxParametros[j], identifiedToken]);
 							console.log("1\tToken em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero: " + assembler.length );
 							switch(newTokenParameter.toUpperCase()){
-								case "WRITE": {assembler.push(translateToken([auxParametros[j], identifiedToken], null));	break;}
-								case "READ": {assembler.push(translateToken([auxParametros[j], identifiedToken], null));	break;}
+								case "WRITE": {assembler.push(translateToken([auxParametros[j], identifiedToken], null, 1));	break;}
+								case "READ": {assembler.push(translateToken([auxParametros[j], identifiedToken], null, 2));	break;}
 							}
 						}
 						// Após inserir os parâmetros, insere a função responsável pelos parâmetros
@@ -345,7 +349,11 @@ function ordenaTokens(tokens, prioridades){
 
 	return newTokens;	
 }
-function translateToken(token, numVariaveis){
+function translateToken(token, numVariaveis, tpFuncao){
+	/*	tpFuncao
+			1 - WRITE
+			2 - READ
+	*/
 	var texto = "";
 
 	switch(token[1]){
@@ -376,7 +384,7 @@ function translateToken(token, numVariaveis){
 		case ALOCA_ESPACO: {	texto = "AMEM " + numVariaveis; break;	}
 		case DESALOCA_ESPACO: {	texto = "DMEM " + posicaoVariavel(token[0]);	break;	}	//<TO DO>
 		case PARA_EXECUCAO: {	texto = "PARA";	break;	}
-		case PARAMETRO:{	texto = "ARMZ " + posicaoVariavel(token[0]);	break;	} //<TO DO>
+		case PARAMETRO:{	texto = (tpFuncao == 1 ? "CRVL " : "ARMZ ") + posicaoVariavel(token[0]);	break;	} //<TO DO>
 	}
 
 	return texto;
