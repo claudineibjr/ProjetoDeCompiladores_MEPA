@@ -104,6 +104,7 @@ const INICIO_PARAMETRO = 30;	//	Parâmetro
 const FIM_PARAMETRO = 31;		//	Parâmetro
 const SEPARADOR = 32;			//	Vírgula
 const PARAMETRO = 33;
+const ELSE = 34;
 const NOME_PROGRAMA = 100;
 
 var variaveis;
@@ -146,6 +147,10 @@ function onLoad(){
 											*/
 	debugWords.push("END .");
 
+	debugWords = new Array();
+	debugWords.push("if A > B ");
+	debugWords.push("then A := 2 ");
+	debugWords.push("else B := 2");
 	
 	document.getElementById("pascalCode").value = showMatriz(debugWords, false);
 	// debug pronto: console.log("Token em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero + " assembler.length );
@@ -168,7 +173,7 @@ function translateStringToToken(string, assembler){
 	var newToken, newTokenParameter = "", identifiedToken = "";
 
 	var iAux = 0, bParametro = false, auxParametros = new Array(), bInserted = false, numVariaveis = 0;
-	var whileLine = null, endWhileLine = null, jumpConditionalLine = null;
+	var whileLine = new Array(), endWhileLine = new Array(), jumpConditionalLine = new Array();
 
 	// Percorre caracter a caracter do texto em Pascal
 	for(var i = 0; i < string.length; i++){
@@ -271,26 +276,31 @@ function translateStringToToken(string, assembler){
 									if (newToken == ":=" && identifiedToken == ARMAZENA)	{	tokens.pop(); assembler.pop();	}
 
 									// Caso o token atual seja um while, guarda o número da linha atual
-									whileLine = (identifiedToken == WHILE ? (assembler.length + 1) : whileLine );
+									(identifiedToken == WHILE || identifiedToken == WHILE ? whileLine.push(assembler.length + 1) : null );
 
 									// Caso seja o DO ou o THEN guarda o número da linha para posteriormente ajustar o JUMP
-									jumpConditionalLine = (identifiedToken == DESVIA_FALSO ? (assembler.length + 1) : jumpConditionalLine);
+									(identifiedToken == DESVIA_FALSO ? jumpConditionalLine.push(assembler.length + 1) : null);
 
 									tokens.push([newToken, identifiedToken]);	//STOP
 									var assemblerToken = translateToken([newToken, identifiedToken], numVariaveis);
 									(assemblerToken != "" ? assembler.push([(assembler.length + 1), assemblerToken]) : null);
 
 									// Caso for o fim de um bloco de WHILE ou IF, eu insiro uma nova linha quando necessário e também arrumo a linha do desvia se falso que ficou para trás
-									if (whileLine != null && ((i+1 == string.length) || identifiedToken == FIM_BLOCO )){
-										assembler.push([(assembler.length + 1), "DSVS L" + whileLine]);
-										whileLine = null;
+									if (whileLine.length > 0 && ((i+1 == string.length) || identifiedToken == FIM_BLOCO || identifiedToken == ELSE )){
+										assembler.push([(assembler.length + 1), "DSVS L" + whileLine.pop()]);
 									}
 
 									// Caso for o fim de um bloco de WHILE ou IF, eu insiro uma nova linha quando necessário e também arrumo a linha do desvia se falso que ficou para trás
-									if (jumpConditionalLine != null && ((i+1 == string.length) || identifiedToken == FIM_BLOCO )){
-										assembler[jumpConditionalLine-1][1] = assembler[jumpConditionalLine-1][1].replace("DO", "L" + (assembler.length + 1));
+									if (jumpConditionalLine.length > 0 && ((i+1 == string.length) || identifiedToken == FIM_BLOCO || identifiedToken == ELSE )){
+										if (identifiedToken == ELSE){
+											jumpConditionalLine.push(assembler.length+1);
+											assembler.push([(assembler.length+1), "DSVS then"]);
+										}
+
+										assembler[jumpConditionalLine[0]-1][1] = assembler[jumpConditionalLine[0]-1][1].toUpperCase().replace("DO", "L" + (assembler.length + 1));
+										assembler[jumpConditionalLine[0]-1][1] = assembler[jumpConditionalLine[0]-1][1].toUpperCase().replace("THEN", "L" + (assembler.length + 1));
 										assembler.push([(assembler.length+1), ""]);
-										jumpConditionalLine = null;
+										jumpConditionalLine.shift();										
 									}
 								}
 							}
@@ -324,8 +334,9 @@ function identifyToken(token, tokens){
 		case "read": 	return LE_VALOR;	//<TO DO>
 		case "write": 	return ESCREVE_VALOR;	//<TO DO>
 		case "if": 	return IF;
-		case " ": 	return DESVIA_FALSO;	//<TO DO>
+		//case " ": 	return DESVIA_FALSO;	//<TO DO>
 		case "do" : return DESVIA_FALSO;
+		case "then" : return DESVIA_FALSO;
 		case " ": 	return DESVIA;	//<TO DO>
 		case "while": 	return WHILE;	//<TO DO>
 		case "program": 	return INICIA_PROGRAMA;	//<TO DO>
@@ -338,6 +349,7 @@ function identifyToken(token, tokens){
 		case ")": return FIM_PARAMETRO;
 		case ",": return SEPARADOR;
 		case "end" : return FIM_BLOCO;
+		case "else": return ELSE;
 
 	}
 
