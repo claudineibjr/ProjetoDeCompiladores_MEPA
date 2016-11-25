@@ -134,7 +134,7 @@ function onLoad(){
 														ARMZ 1	*/
 	//debugWords.push("WHILE K<= N DO");
 	//debugWords.push("BEGIN");
-	//debugWords.push("F3:=F1+F2;");
+	debugWords.push("F3 := F1 + F2;");
 	//debugWords.push("F1:=F2;");
 	//debugWords.push("F2:=F3;");
 	//debugWords.push("K:=K+1;");
