@@ -77,7 +77,7 @@ function translate(){
 
 function translateStringToToken(string, assembler){
 	var tokens = newMatriz(1, 2);
-	var newToken, newTokenParameter = "", identifiedToken = "";
+	var newToken, oldToken, newTokenParameter = "", identifiedToken = "";
 
 	var iAux = 0, bParametro = false, auxParametros = new Array(), bInserted = false, numVariaveis = 0;
 	var whileLine = new Array(), endWhileLine = new Array(), jumpConditionalLine = new Array();
@@ -116,17 +116,18 @@ function translateStringToToken(string, assembler){
 						// Percorre o array de parâmetros e os insere
 						for (var j = 0; j < auxParametros.length; j++){
 							identifiedToken = PARAMETRO;
+
 							tokens.push([auxParametros[j], identifiedToken]);
-							console.log("1\tToken em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero: " + assembler.length );
-							switch(newTokenParameter.toUpperCase()){
-								case "WRITE": {assembler.push([(assembler.length + 1), translateToken([auxParametros[j], identifiedToken], null, 1)]);	break;}
-								case "READ": {assembler.push([(assembler.length + 1), translateToken([auxParametros[j], identifiedToken], null, 2)]);	break;}
+							if (!(identifiedToken == PARAMETRO && (auxParametros[j].indexOf("+") >= 0 || auxParametros[j].indexOf("-") >= 0 || auxParametros[j].indexOf("*") >= 0 ||auxParametros[j].indexOf("/") >= 0))){
+								switch(newTokenParameter.toUpperCase()){
+									case "WRITE": {assembler.push([(assembler.length + 1), translateToken([auxParametros[j], identifiedToken], null, 1)]);	break;}
+									case "READ": {assembler.push([(assembler.length + 1), translateToken([auxParametros[j], identifiedToken], null, 2)]);	break;}
+								}
 							}
 						}
 						// Após inserir os parâmetros, insere a função responsável pelos parâmetros
 						identifiedToken = identifyToken(newTokenParameter, tokens);
-						console.log("2\tToken em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero: " + assembler.length );
-						assembler.push([(assembler.length + 1), translateToken([newTokenParameter, identifiedToken], null)]);
+						assembler.push([(assembler.length + 1), translateToken([newTokenParameter, identifiedToken], null, null, null)]);
 
 						auxParametros = new Array();
 					}
@@ -146,7 +147,7 @@ function translateStringToToken(string, assembler){
 				if ( (identifiedToken != null) && (newToken != "") ){
 
 					// Se a identificação do token for diferente do nome do programa continua
-					if (identifiedToken != NOME_PROGRAMA && bInserted == false){
+					if (identifiedToken != NOME_PROGRAMA && (newToken == "+" || newToken == "-" || newToken == "/" || newToken == "*" ? 1 == 1 : bInserted == false)){
 						
 						// Se a identificação do token for diferente de WRITE continua
 						if (identifiedToken != ESCREVE_VALOR){
@@ -165,8 +166,7 @@ function translateStringToToken(string, assembler){
 										// Caso seja mais uma variável, retira o último token e o reinsere com o númeo correto de variáveis
 										newToken = "VAR";	identifiedToken = identifyToken(String(newToken), tokens);
 										tokens.pop();		tokens.push([newToken, identifiedToken]);
-										console.log("3\tToken em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero: " + assembler.length );
-										assembler.pop();	assembler.push([(assembler.length + 1), translateToken([newToken, identifiedToken], numVariaveis)]);
+										assembler.pop();	assembler.push([(assembler.length + 1), translateToken([newToken, identifiedToken], numVariaveis, null, null)]);
 									}else{
 
 										// Na realidade não era uma variável, então tira o valor do array de variáveis e decrementa a variável contadora
@@ -177,7 +177,6 @@ function translateStringToToken(string, assembler){
 							else{
 								if (identifiedToken != LE_VALOR){
 									// Insere o token e o traduz para assembler
-									console.log("4\tToken em pascal: " + newToken + "\n\nIdentificado como: " + identifiedToken + "\n\nTraduzido: " + translateToken([auxParametros[j], identifiedToken], numVariaveis) + "\n\nÉ token de numero: " + assembler.length );
 									
 									// Caso o token atual seja := e esteja identificado como armazena, eu retiro os anteriores pois seis que estão lá indevidamente
 									if (newToken == ":=" && identifiedToken == ARMAZENA)	{	tokens.pop(); assembler.pop();	}
@@ -189,7 +188,7 @@ function translateStringToToken(string, assembler){
 									(identifiedToken == DESVIA_FALSO ? jumpConditionalLine.push(assembler.length + 1) : null);
 
 									tokens.push([newToken, identifiedToken]);	//STOP
-									var assemblerToken = translateToken([newToken, identifiedToken], numVariaveis);
+									var assemblerToken = translateToken([newToken, identifiedToken], numVariaveis, null, oldToken);
 									(assemblerToken != "" ? assembler.push([(assembler.length + 1), assemblerToken]) : null);
 
 									// Caso for o fim de um bloco de WHILE ou IF, eu insiro uma nova linha quando necessário e também arrumo a linha do desvia se falso que ficou para trás
@@ -216,6 +215,7 @@ function translateStringToToken(string, assembler){
 				}
 			}
 			iAux = i;
+			oldToken = newToken;
 		}
 	}
 	assembler.push([(assembler.length + 1), "DMEM " + numVariaveis]);
@@ -301,7 +301,7 @@ function ordenaTokens(tokens, prioridades){
 
 	return newTokens;	
 }
-function translateToken(token, numVariaveis, tpFuncao){
+function translateToken(token, numVariaveis, tpFuncao, aux){
 	/*	tpFuncao
 			1 - WRITE
 			2 - READ
@@ -325,7 +325,7 @@ function translateToken(token, numVariaveis, tpFuncao){
 		case COMPARA_MAIOR_IGUAL: {	texto = "CMAG";	break;	}
 		case INVERTE_SINAL: {	texto = "INVR";	break;	}
 		case NEGACAO: {	texto = "NEGA";	break;	}
-		case ARMAZENA: {	texto = "ARMZ " + posicaoVariavel(token[0]);	break;	}	//<TO DO>
+		case ARMAZENA: {	texto = "ARMZ " + (aux == null ? "[VARIAVEL]" : aux);	break;	}	//<TO DO>
 		case LE_VALOR: {	texto = "LEIT";	break;	}
 		case ESCREVE_VALOR: {	texto = "IMPR";	break;	}
 		//<TO DO> Falta fazer o if // case IF: {	texto = "";	break;	}
@@ -355,30 +355,30 @@ function setExample(numberExample){
 	readyExample1.push("PROGRAM TESTE; ");
 	readyExample1.push("VAR N, K : INTEGER; F1, F2, F3: INTEGER; ");
 	readyExample1.push("BEGIN ");
-	readyExample1.push("READ ( N );");
-	readyExample1.push("F1 := 0; F2 := 1; K := 1;");
+	readyExample1.push("READ ( N ); ");
+	readyExample1.push("F1 := 0; F2 := 1; K := 1; ");
 	readyExample1.push("WHILE K <= N DO ");
-	readyExample1.push("BEGIN");
-	readyExample1.push("F3 := F1 + F2;");
-	readyExample1.push("F1 := F2;");
-	readyExample1.push("F2 := F3;");
-	readyExample1.push("K := K + 1;");
-	readyExample1.push("END;");
-	readyExample1.push("WRITE ( N, F1 );");
+	readyExample1.push("BEGIN ");
+	readyExample1.push("F3 := F1 + F2; ");
+	readyExample1.push("F1 := F2; ");
+	readyExample1.push("F2 := F3; ");
+	readyExample1.push("K := K + 1; ");
+	readyExample1.push("END; ");
+	readyExample1.push("WRITE ( N, F1 ); ");
 	readyExample1.push("END .");
 
 	var readyExample2 = new Array();
 	readyExample2.push("PROGRAM XYZ; ");
 	readyExample2.push("VAR A, S, NUM: INTEGER; ");
 	readyExample2.push("BEGIN ")
-	readyExample2.push("A := 1;")
-	readyExample2.push("S := 0;")
+	readyExample2.push("A := 1; ")
+	readyExample2.push("S := 0; ")
 	readyExample2.push("WHILE A <= 100 DO ")
 	readyExample2.push("BEGIN ")
 	readyExample2.push("READ ( NUM ); ")
 	readyExample2.push("IF NUM > 0 THEN ")
-	readyExample2.push("S := S + NUM;")
-	readyExample2.push("A := A + 1;")
+	readyExample2.push("S := S + NUM; ")
+	readyExample2.push("A := A + 1; ")
 	readyExample2.push("END; ")
 	readyExample2.push("WRITE ( S ); ")
 	readyExample2.push("END.")
