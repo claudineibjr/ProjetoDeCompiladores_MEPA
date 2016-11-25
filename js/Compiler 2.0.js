@@ -103,14 +103,11 @@ const INICIO_BLOCO = 28;		//	Início de bloco
 const INICIO_PARAMETRO = 29;	//	Parâmetro
 const FIM_PARAMETRO = 30;		//	Parâmetro
 const SEPARADOR = 31;			//	Vírgula
+const PARAMETRO = 32;
 const NOME_PROGRAMA = 100;
 
-var posicoes;
-posicoes = newMatriz(1, 2);
-posicoes.push(["A", "100"]);
-posicoes.push(["B", "101"]);
-posicoes.push(["C", "103"]);
-posicoes.push(["D", "104"]);
+var variaveis;
+variaveis = new Array();
 
 var numVariaveis;
 
@@ -124,10 +121,10 @@ function onLoad(){
 
 	// Seto um valor padrão quando o programa for aberto
 	var debugWords = new Array();
-	debugWords.push("PROGRAM TESTE;");							//INPP
-	debugWords.push("VAR N,K : INTEGER; F1,F2,F3: INTEGER;");		//AMEM 5
-	//debugWords.push("BEGIN");
-	//debugWords.push("READ(N);");
+	debugWords.push("PROGRAM TESTE; ");							//INPP
+	debugWords.push("VAR N, K : INTEGER; F1, F2, F3: INTEGER; ");		//AMEM 5
+	debugWords.push("BEGIN ");
+	debugWords.push("READ ( N );");
 	//debugWords.push("F1:=0; F2:=1; K:=1;");
 	//debugWords.push("WHILE K<= N DO");
 	//debugWords.push("BEGIN");
@@ -159,34 +156,44 @@ function translateStringToToken(string, assembler){
 
 	var iAux = 0, bParametro = false, auxParametros = new Array(), bInserted = false, numVariaveis = 0;
 
+	// Percorre caracter a caracter do texto em Pascal
 	for(var i = 0; i < string.length; i++){
 
+		// Verifica se há algum separador
 		if (	(string.substring(i, i+1) == " ")	||
 				(string.substring(i, i+1) == ",")	||
 				(string.substring(i, i+1) == "(")	||
 				(string.substring(i, i+1) == ")")	||
 				(string.substring(i, i+1) == ":")	||
 				(string.substring(i, i+1) == ";")	){
+
+			// Verifica se o token é uma abertura de parênteses, se sim, identifica que é uma função com parâmetros, guarda a função que a chamou
 			if (string.substring(i, iAux).trim() == "(")
 				newTokenParameter = newToken;
 
+			// Verifica se o token identificado é diferente de vazio
 			if (string.substring(i, iAux).trim() != ""){
 				newToken = string.substring(i, iAux).trim();
 
+				// <TO DO>
 				bInserted = false;
 
+				// Se o novo token é um abre parênteses, identifica que estamos trabalhando com parâmetros
 				if (newToken == "(")
 					bParametro = true;
 
+				// Se for parâmetros que o token é um abre parenteses
 				if (bParametro && newToken != "("){
 					bInserted = true;
 					((newToken == ")" || newToken == ",") ? null : auxParametros.push(newToken));
 					if (newToken == "," || newToken == ")" ){
 						for (var j = 0; j < auxParametros.length; j++){
-							identifiedToken = identifyToken(String(auxParametros[j]), tokens);
-							tokens.push([auxParametros[j], identifiedToken]);	// STOP
-							if (newTokenParameter == "write")
-								assembler.push(translateToken([auxParametros[j], identifiedToken], null));
+							identifiedToken = PARAMETRO;
+							tokens.push([auxParametros[j], identifiedToken]);
+							switch(newTokenParameter.toUpperCase()){
+								case "WRITE": {assembler.push(translateToken([auxParametros[j], identifiedToken], null));	break;}
+								case "READ": {assembler.push(translateToken([auxParametros[j], identifiedToken], null));	break;}
+							}
 						}
 						identifiedToken = identifyToken(newTokenParameter, tokens);
 						assembler.push(translateToken([newTokenParameter, identifiedToken], null));
@@ -195,34 +202,46 @@ function translateStringToToken(string, assembler){
 					}
 				}
 
+				// Se for um fecha parênteses, indica que acabaram os parâmetros
 				if (newToken == ")")
 					bParametro = false;
 
-				newToken = replaceValues(newToken, [",", ";", ":", "\n", "\t", " "], "");
+				// Retira caracteres indesejados do token
+				newToken = replaceValues(newToken, [",", ";", ":", "\n", "\t", " ", "(", ")"], "");
 
+				// Guarda a informação de que tipo de token que é
 				identifiedToken = identifyToken(String(newToken), tokens);
 
-				if (identifiedToken != null){
+				// Se o tipo identificado é diferente de null, começa a tratativa para tradução
+				if ( (identifiedToken != null) && (newToken != "") ){
 
-					console.log("O token é: " + newToken + "\nTipado como: " + identifiedToken );
-
+					// Se a identificação do tolen for diferente do nome do programa continua
 					if (identifiedToken != NOME_PROGRAMA && bInserted == false){
+						// Se a identificação do token for diferente de WRITE continua
 						if (identifiedToken != ESCREVE_VALOR){
-							if ( ((tokens.length > 0 ? tokens[tokens.length-1][1] : null) == ALOCA_ESPACO) ){
+							// Se há mais de um token e este token for igual a alocação de espaço continua
+							if ( ((tokens.length > 0 ? tokens[tokens.length-1][1] : null) == ALOCA_ESPACO) && (identifiedToken != INICIO_BLOCO) ){
+								variaveis.push(newToken);
 								numVariaveis++;
+								// Se o último token inserido no assembler for amem continua
 								if (assembler[assembler.length-1].indexOf("AMEM") >= 0){
+									// Se o último token do assembler for amem e o token atual for uma variável,
 									if (identifiedToken == CARREGA_VALOR){
 										newToken = "VAR";	identifiedToken = identifyToken(String(newToken), tokens);
-										tokens.pop();		tokens.push([newToken, identifiedToken]);	//STOP
+										tokens.pop();		tokens.push([newToken, identifiedToken]);
 										assembler.pop();	assembler.push(translateToken([newToken, identifiedToken], numVariaveis));
-									}else
-										numVariaveis--;
+									}else{
+										variaveis.pop();	numVariaveis--;
+									}
 								}
 							}
 							else{
-								//alert("O token é: " + newToken + "\nIdentificado como: " + identifiedToken);
-								tokens.push([newToken, identifiedToken]);	//STOP
-								assembler.push(translateToken([newToken, identifiedToken], numVariaveis));
+								if (identifiedToken != LE_VALOR){
+									// Insere o token e o traduz para assembler
+									tokens.push([newToken, identifiedToken]);	//STOP
+									var assemblerToken = translateToken([newToken, identifiedToken], numVariaveis);
+									(assemblerToken != "" ? assembler.push(assemblerToken) : null);
+								}
 							}
 						}
 					}
@@ -340,7 +359,7 @@ function translateToken(token, numVariaveis){
 		case ALOCA_ESPACO: {	texto = "AMEM " + numVariaveis; break;	}
 		case DESALOCA_ESPACO: {	texto = "DMEM " + posicaoVariavel(token[0]);	break;	}	//<TO DO>
 		case PARA_EXECUCAO: {	texto = "PARA";	break;	}
-		//case PARAMETRO:{	texto = "ARMZ " + posicaoVariavel(token[0]);	break;	} //<TO DO>
+		case PARAMETRO:{	texto = "ARMZ " + posicaoVariavel(token[0]);	break;	} //<TO DO>
 	}
 
 	return texto;
